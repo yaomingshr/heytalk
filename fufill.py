@@ -50,7 +50,7 @@ def userinterest():
                                 row += 1
                                 print row
         conn.commit()
-                        
+
 
 if __name__ == "__main__":
         userinterest()
