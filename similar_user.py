@@ -2,7 +2,10 @@ import numpy as np
 import MySQLdb as mysql
 from datetime import date,datetime
 
-conn = mysql.connect(host='localhost',user='root',passwd='123',port=3306)
+#out_ip = '203.195.138.60'
+#in_ip = '10.232.83.107'
+#conn = mysql.connect(host = out_ip,user='root',passwd='TengFei12345',port=3306)
+conn = mysql.connect(host = 'localhost',user='root',passwd='123',port=3306)
 cur = conn.cursor()
 
 def pre_calc_score():
