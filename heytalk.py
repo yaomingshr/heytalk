@@ -8,9 +8,10 @@ from sklearn.cluster import KMeans
 from sklearn.datasets import load_digits
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
+import random
 
 #conn = mysql.connect(host = 'localhost',user='root',passwd='TengFei12345~',port=3306)
-conn = mysql.connect(host = 'localhost',user='root',passwd='123',port=3306)
+conn = mysql.connect(host = 'localhost',user='root',passwd='1234',port=3306)
 cur = conn.cursor()
 conn.select_db("heytalk")
 
@@ -34,7 +35,7 @@ def pre_cluster():
     usi_list = []
     for i in raw_data:
         usi_list.append(i[0])
-    interest_count = cur.execute("select * from userinterest")
+    interest_count = cur.execute("select * from interest")
     beginid = 1011
     m_interest = np.zeros((user_count,interest_count))
     for i in range(0,len(usi_list)):
@@ -124,19 +125,49 @@ def getRes(usi,usi_list,label,usi_score_live):
 
 def getSimilar(usi):
     say_feature = pre_calc_score()
-    usi_list,usi_featur,cate_list = pre_cluster()
+    usi_list,usi_feature,cate_list = pre_cluster()
     #print usi_list
     usi_score_live  = ScoreLive(say_feature = say_feature)
     label = InterestCluster(mat_inter = usi_featur, cate_list = cate_list)
-    return getRes(usi,usi_list,label,usi_score_live)
-    
+    similar_list = getRes(usi,usi_list,label,usi_score_live)
+    return len(similar_list),similar_list
+ 
+def GetShowInform(mat_inter, usi_list, res, usi):
+    res_feat = np.zeros( (len(res), len(mat_inter[0])) )
+    print len(mat_inter)
+    for i in range(0, len(usi_list)):
+        if usi_list[i]==usi:
+            usi_feature = mat_inter[i]
+        for j in range(0, len(res)):
+            if usi_list[i] == res[j]:
+                res_feat[j] = mat_inter[i]
+    all_show_inter = []
+    for i in range(0, len(res)):
+        comm_inter = np.array(usi_feature)*np.array(res_feat[i])
+        index = []
+        for j in range(0, len(comm_inter)):
+           # print comm_inter[j]
+            #print (comm_inter[j]!=0)
+            if (comm_inter[j]!=0):
+                index.append(j)
+        if len(index)!=0:
+            show_inter = index[random.randint(0,len(index)-1)]
+        else:
+            show_inter = -1
+        print show_inter
+        all_show_inter.append(show_inter)
+    beginid = 1011
+    info_res = [x+beginid for x in all_show_inter]
+    return info_res
+
+
+
 if __name__ == "__main__":
     say_feature = pre_calc_score()
-    usi_list,usi_featur,cate_list = pre_cluster()
+    usi_list,usi_feature,cate_list = pre_cluster()
     #print usi_list
     usi_score_live  = ScoreLive(say_feature = say_feature)
     label = InterestCluster(mat_inter = usi_featur, cate_list = cate_list)
+    res = getRes('0',usi_list,label,usi_score_live)
+    show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = res, usi ='0')
     print getRes('0',usi_list,label,usi_score_live)
-    
-
-

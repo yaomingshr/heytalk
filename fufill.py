@@ -1,7 +1,7 @@
 import MySQLdb as mysql
 import random as rd
 
-conn = mysql.connect(host='localhost',user='root',passwd='123',port=3306)
+conn = mysql.connect(host='localhost',user='root',passwd='1234',port=3306)
 cur = conn.cursor()
 
 def saycontent():
@@ -33,9 +33,10 @@ def userinterest():
         row = 0
         conn.select_db("heytalk")
         cur = conn.cursor()
+        cur.execute("delete from userinterest;")
         count = cur.execute("select usi from user")
         usi_res = cur.fetchmany(count)
-        uin_list = [("shop",3),("video",3),("education",3),("news",5),("game",5),("music",20)]
+        uin_list = [("shop",10),("video",10),("education",10),("news",15),("game",15),("music",50)]
         for i in uin_list:
                 count = cur.execute('select id from interest where category = "%s"'%(i[0]))
                 inid_res = cur.fetchmany(count)
@@ -48,7 +49,7 @@ def userinterest():
                                 in_list.append(rdnum)
                                 cur.execute("insert into userinterest (usi,interestid) values (%s,%s);",(j,rdnum))
                                 row += 1
-                                print row
+                                #print row
         conn.commit()
 
 
