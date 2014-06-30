@@ -47,7 +47,7 @@ def userinterest():
                                 while(rdnum in in_list):
                                         rdnum = rd.choice(inid_res)
                                 in_list.append(rdnum)
-                                cur.execute("insert into userinterest (usi,interestid) values (%s,%s);",(j,rdnum))
+                                cur.execute("insert into userinterest (usi,interestid) values (%s,%s);",(j[0],rdnum[0]))
                                 row += 1
                                 #print row
         conn.commit()
