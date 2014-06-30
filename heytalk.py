@@ -11,7 +11,7 @@ from sklearn.preprocessing import scale
 import random
 
 #conn = mysql.connect(host = 'localhost',user='root',passwd='TengFei12345~',port=3306)
-conn = mysql.connect(host = 'localhost',user='root',passwd='1234',port=3306)
+conn = mysql.connect(host = 'localhost',user='root',passwd = '1234',port=3306)
 cur = conn.cursor()
 conn.select_db("heytalk")
 
@@ -117,21 +117,12 @@ def getRes(usi,usi_list,label,usi_score_live):
     sorted_list = sorted(kindscore_list,key = lambda x : x[1],reverse = True)
     
     res = []
-    for i in range(0,min(10,len(sorted_list))):
+    for i in range(0,min(15,len(sorted_list))):
         #print sorted_list[i]
         res.append(sorted_list[i][0])
     #print res
     return res
 
-def getSimilar(usi):
-    say_feature = pre_calc_score()
-    usi_list,usi_feature,cate_list = pre_cluster()
-    #print usi_list
-    usi_score_live  = ScoreLive(say_feature = say_feature)
-    label = InterestCluster(mat_inter = usi_featur, cate_list = cate_list)
-    similar_list = getRes(usi,usi_list,label,usi_score_live)
-    return len(similar_list),similar_list
- 
 def GetShowInform(mat_inter, usi_list, res, usi):
     res_feat = np.zeros( (len(res), len(mat_inter[0])) )
     print len(mat_inter)
@@ -161,13 +152,35 @@ def GetShowInform(mat_inter, usi_list, res, usi):
     return info_res
 
 
-
-if __name__ == "__main__":
+def getSimilar(usi):
     say_feature = pre_calc_score()
     usi_list,usi_feature,cate_list = pre_cluster()
     #print usi_list
     usi_score_live  = ScoreLive(say_feature = say_feature)
-    label = InterestCluster(mat_inter = usi_featur, cate_list = cate_list)
-    res = getRes('0',usi_list,label,usi_score_live)
-    show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = res, usi ='0')
-    print getRes('0',usi_list,label,usi_score_live)
+    label = InterestCluster(mat_inter = usi_feature, cate_list = cate_list)
+    similar_list = getRes(usi,usi_list,label,usi_score_live)
+    show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = similar_list, usi = usi)
+    part_res = []
+    for i in range(0,len(similar_list)):
+        part_res.append(similar_list[i])
+        part_res.append(show_inters[i])
+    tPart = tuple(part_res)
+    final_res = (len(similar_list)*2,tPart)
+    print final_res
+    return final_res
+
+
+
+
+if __name__ == "__main__":
+
+#    say_feature = pre_calc_score()
+#    usi_list,usi_feature,cate_list = pre_cluster()
+#    #print usi_list
+#    usi_score_live  = ScoreLive(say_feature = say_feature)
+#    label = InterestCluster(mat_inter = usi_feature, cate_list = cate_list)
+#    res = getRes('0',usi_list,label,usi_score_live)
+#    show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = res, usi ='0')
+#    print getRes('0',usi_list,label,usi_score_live)
+
+    getSimilar('0')
