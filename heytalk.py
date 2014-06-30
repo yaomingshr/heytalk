@@ -123,7 +123,58 @@ def getRes(usi,usi_list,label,usi_score_live):
     #print res
     return res
 
-def GetShowInform(mat_inter, usi_list, res, usi):
+
+
+def NormOne(array_num):
+    norm_coef =[float(1)/sum(array_num)]*len(array_num)
+    array_num = np.array(array_num)
+    if sum(array_num)!=0:
+        array_num = array_num*np.array(norm_coef)
+    return array_num
+
+
+def CalcuCateRangeWei(cate_list, weight_cate):
+ #   weight_cate = np.array(weight_cate)
+ #   norm_coef = [1/sum(weight_cate)]*len(weight_cate)
+ #   weight_cate = np.array(weight_cate)*np.array(norm_coef)
+    weight_cate = NormOne(weight_cate)
+    cate_range_wei = []
+    start = 0
+    i = 0
+    for cate in cate_list:
+        end = start + cate[1]-1
+        cate_range_wei.append([start, end, weight_cate[i], 0, 0])
+        start = end+1
+        i += 1
+    return cate_range_wei
+
+
+def GeneShowDim(index, weight_cate, cate_list):
+    cate_range_wei = CalcuCateRangeWei(cate_list = cate_list, weight_cate = weight_cate)
+    cate_range_wei = np.array(cate_range_wei)
+    index_cate = np.zeros(len(index))
+    for nc in range(0, len(cate_list)):
+        for nind in range(0, len(index)):
+            if cate_range_wei[nc][0]<= index[nind]<=cate_range_wei[nc][1]:
+                cate_range_wei[nc][3] +=1
+                index_cate[nind] = nc
+        if cate_range_wei[nc][3]!=0:
+            cate_range_wei[nc][4] = cate_range_wei[nc][2]/cate_range_wei[nc][3]
+    pred_wei = np.zeros(len(index))
+    for nind in range(0, len(index_cate)):
+        pred_wei[nind] = cate_range_wei[int(index_cate[nind])][4]
+    pred_wei = NormOne(array_num = pred_wei)
+    random_num = random.random()
+    pred_sum = 0
+    for nind in range(0, len(index)):
+        pred_sum += pred_wei[nind]
+        if pred_sum>=random_num:
+            show_inter = index[nind]
+            break
+    return show_inter
+
+def GetShowInform(mat_inter, usi_list, res, usi, cate_list):
+    weight_cate = [6,5,4,3,2,1]
     res_feat = np.zeros( (len(res), len(mat_inter[0])) )
     print len(mat_inter)
     for i in range(0, len(usi_list)):
@@ -142,14 +193,12 @@ def GetShowInform(mat_inter, usi_list, res, usi):
             if (comm_inter[j]!=0):
                 index.append(j)
         if len(index)!=0:
-            show_inter = index[random.randint(0,len(index)-1)]
+            show_inter = GeneShowDim(index = index, weight_cate = weight_cate, cate_list = cate_list)
+         #   show_inter = index[random.randint(0,len(index)-1)]
         else:
             show_inter = -1
-        print show_inter
         all_show_inter.append(show_inter)
-    beginid = 1011
-    info_res = [x+beginid for x in all_show_inter]
-    return info_res
+    return all_show_inter
 
 
 def getSimilar(usi):
@@ -159,11 +208,11 @@ def getSimilar(usi):
     usi_score_live  = ScoreLive(say_feature = say_feature)
     label = InterestCluster(mat_inter = usi_feature, cate_list = cate_list)
     similar_list = getRes(usi,usi_list,label,usi_score_live)
-    show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = similar_list, usi = usi)
+    show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = similar_list, usi ='0', cate_list = cate_list)
     part_res = []
     for i in range(0,len(similar_list)):
         part_res.append(similar_list[i])
-        part_res.append(show_inters[i])
+        part_res.append(str(show_inters[i]))
     tPart = tuple(part_res)
     final_res = (len(similar_list)*2,tPart)
     print final_res
