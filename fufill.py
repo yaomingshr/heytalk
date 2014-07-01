@@ -1,8 +1,11 @@
+#coding:utf-8
 import MySQLdb as mysql
 import random as rd
 
-conn = mysql.connect(host='localhost',user='root',passwd='1234',port=3306)
+conn = mysql.connect(host = '203.195.138.60',user='root',passwd='123456',port=3306)
+#conn = mysql.connect(host = 'localhost',user='root',passwd = '1234',port=3306)
 cur = conn.cursor()
+conn.select_db("heytalkdb")
 
 def saycontent():
         conn.select_db("heytalk")
@@ -27,6 +30,10 @@ def interest():
                         in_name = i[0] + "_testname"
                         cur.execute("insert into interest (category,name) values (%s,%s);",(i[0],in_name))
                         print i[0]
+        conn.commit()
+
+def fillcontent():
+        cur.execute("update interest set name = 'nanzhuang' where id = '1015'")
         conn.commit()
 
 def userinterest():
@@ -54,5 +61,4 @@ def userinterest():
 
 
 if __name__ == "__main__":
-        userinterest()
-        
+        fillcontent()

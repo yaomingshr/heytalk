@@ -10,10 +10,10 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
 import random
 
-#conn = mysql.connect(host = 'localhost',user='root',passwd='TengFei12345~',port=3306)
-conn = mysql.connect(host = 'localhost',user='root',passwd = '1234',port=3306)
+conn = mysql.connect(host = '203.195.138.60',user='root',passwd='123456',port=3306)
+#conn = mysql.connect(host = 'localhost',user='root',passwd = '1234',port=3306)
 cur = conn.cursor()
-conn.select_db("heytalk")
+conn.select_db("heytalkdb")
 
 def pre_calc_score():
     cur = conn.cursor()
@@ -79,7 +79,7 @@ def NormalData(mat_inter, cate_list):
 def InterestCluster(mat_inter, cate_list):
     para_K = 4
   #  mat_inter = NormalData(mat_inter = mat_inter, cate_list = cate_list)
-    kmeans = KMeans(n_clusters=para_K, n_init=1)
+    kmeans = KMeans(n_clusters=para_K, n_init=10)
     kmeans.fit(mat_inter)
     label = kmeans.predict(mat_inter)
     return label
@@ -87,7 +87,6 @@ def InterestCluster(mat_inter, cate_list):
 def ClusterRank(usi_list, label, usi_score_live):
     uni_label = set(label)
     usi_label = [usi_list, label]
-    print usi_label
     ranked_cluster = dict()
     for uni_l in uni_label:
         cluster_list = []
@@ -118,9 +117,7 @@ def getRes(usi,usi_list,label,usi_score_live):
     
     res = []
     for i in range(0,min(15,len(sorted_list))):
-        #print sorted_list[i]
         res.append(sorted_list[i][0])
-    #print res
     return res
 
 
@@ -176,7 +173,6 @@ def GeneShowDim(index, weight_cate, cate_list):
 def GetShowInform(mat_inter, usi_list, res, usi, cate_list):
     weight_cate = [6,5,4,3,2,1]
     res_feat = np.zeros( (len(res), len(mat_inter[0])) )
-    print len(mat_inter)
     for i in range(0, len(usi_list)):
         if usi_list[i]==usi:
             usi_feature = mat_inter[i]
@@ -188,8 +184,6 @@ def GetShowInform(mat_inter, usi_list, res, usi, cate_list):
         comm_inter = np.array(usi_feature)*np.array(res_feat[i])
         index = []
         for j in range(0, len(comm_inter)):
-           # print comm_inter[j]
-            #print (comm_inter[j]!=0)
             if (comm_inter[j]!=0):
                 index.append(j)
         if len(index)!=0:
@@ -198,38 +192,56 @@ def GetShowInform(mat_inter, usi_list, res, usi, cate_list):
         else:
             show_inter = -1
         all_show_inter.append(show_inter)
-    return all_show_inter
+    beginid = 1011
+    info_res = [x+beginid for x in all_show_inter]
+    return info_res
 
 
 def getSimilar(usi):
     say_feature = pre_calc_score()
     usi_list,usi_feature,cate_list = pre_cluster()
-    #print usi_list
+    if usi not in usi_list:
+        return (0,())
     usi_score_live  = ScoreLive(say_feature = say_feature)
     label = InterestCluster(mat_inter = usi_feature, cate_list = cate_list)
     similar_list = getRes(usi,usi_list,label,usi_score_live)
     show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = similar_list, usi ='0', cate_list = cate_list)
-    part_res = []
+    #part_res = []
+    #for i in range(0,len(similar_list)):
+    #    part_res.append(similar_list[i])
+    #    part_res.append(str(show_inters[i]))
+    #tPart = tuple(part_res)
+    #final_res = (len(similar_list)*2,tPart)
+    #return final_res
+    dict_res = {}
     for i in range(0,len(similar_list)):
-        part_res.append(similar_list[i])
-        part_res.append(str(show_inters[i]))
-    tPart = tuple(part_res)
-    final_res = (len(similar_list)*2,tPart)
-    print final_res
-    return final_res
+        dict_res[similar_list[i]] = show_inters[i]
+    return dict_res;
 
 
+def savetodb(usi_list):
+    cur = conn.cursor()
+    count = 1
+    for one_user in usi_list:
+        simi_dict = getSimilar(one_user)
+        for simi_user in simi_dict.keys():
+            cur.execute("insert into similar (usi,similaruser,cointerestid) values (%s,%s,%s);",(one_user,simi_user,simi_dict[simi_user]))
+        print count
+        count += 1
+    conn.commit()
+        
+def filluser(usi_list):
+    cur = conn.cursor()
+    sex_list = [0,1]
+    age_list = [x for x in range(17,34)]
+    for user in usi_list:
+        sex = random.choice(sex_list)
+        age = random.choice(age_list)
+        #print user
+#        cur.execute("""update user set age = %s,sex = %s where usi = %s""",(age,sex,user))
+        cur.execute("update user set status = 1")
+    conn.commit()
 
-
-if __name__ == "__main__":
-
-#    say_feature = pre_calc_score()
-#    usi_list,usi_feature,cate_list = pre_cluster()
-#    #print usi_list
-#    usi_score_live  = ScoreLive(say_feature = say_feature)
-#    label = InterestCluster(mat_inter = usi_feature, cate_list = cate_list)
-#    res = getRes('0',usi_list,label,usi_score_live)
-#    show_inters = GetShowInform(mat_inter=usi_feature, usi_list=usi_list, res = res, usi ='0')
-#    print getRes('0',usi_list,label,usi_score_live)
-
-    getSimilar('0')
+if __name__== "__main__":
+        usi_list,usi_feature,cate_list = pre_cluster()
+        filluser(usi_list)
