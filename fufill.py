@@ -32,9 +32,10 @@ def interest():
                         print i[0]
         conn.commit()
 
-def fillcontent():
-        cur.execute("update interest set name = 'nanzhuang' where id = '1015'")
-        conn.commit()
+#def fillcontent():
+        #cur.execute("update interest set name = '男装' where id = '1015'")
+        #conn.commit()
+#        cur.execute
 
 def userinterest():
         row = 0
