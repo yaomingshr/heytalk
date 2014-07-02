@@ -9,6 +9,7 @@ from sklearn.datasets import load_digits
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import scale
 import random
+import copy
 
 conn = mysql.connect(host = '203.195.138.60',user='root',passwd='123456',port=3306)
 #conn = mysql.connect(host = 'localhost',user='root',passwd = '1234',port=3306)
@@ -242,6 +243,37 @@ def filluser(usi_list):
         cur.execute("update user set status = 1")
     conn.commit()
 
+def fillfriendship(usi_list):
+    cur = conn.cursor()
+    cur.execute("delete from friendship")
+    count = 0
+    num_list = [x for x in range(65,82)]
+    for user in usi_list:
+        finalnum = random.choice(num_list)
+        friend_count = cur.execute('select friendid from friendship where usi = "%s"'%(user))
+        if friend_count >= finalnum:
+            count += 1
+            print count
+            continue
+        friend_list = cur.fetchmany(friend_count)
+        last_friend =copy.deepcopy(usi_list)
+        last_friend.remove(user)
+        for existing_friend in friend_list:
+            last_friend.remove(existing_friend[0])
+        del_num = 81 - finalnum
+        while(del_num != 0):
+            if len(last_friend) == 0:
+                print 'nonononono'
+                print finalnum,friend_count
+            last_friend.remove(random.choice(last_friend))
+            del_num -= 1
+        for add_friend in last_friend:
+            cur.execute("""insert into friendship (usi,friendid) values (%s,%s);""",(user,add_friend))
+            cur.execute("""insert into friendship (usi,friendid) values (%s,%s);""",(add_friend,user))
+        count += 1
+        print count
+    conn.commit()
+
 if __name__== "__main__":
         usi_list,usi_feature,cate_list = pre_cluster()
-        filluser(usi_list)
+        fillfriendship(usi_list)
